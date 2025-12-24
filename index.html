@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Personal Notes</title>
-    <link rel="icon" type="image/png" href="assets/note-taking-app-icon-in-illustration-vector.png">
+    <link rel="icon" href="assets/note-taking-app-icon-in-illustration-vector.png">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,84 +13,69 @@
     <style>
         * {
             box-sizing: border-box;
-            font-family: "Times New Roman", Times, serif;
+            font-family: "Times New Roman"
         }
 
-        html,
         body {
             margin: 0;
-            height: 100%;
-            background: #f2f4f7;
+            background: #f2f4f7
         }
 
         .topbar {
             height: 52px;
             display: flex;
-            align-items: center;
             gap: 10px;
+            align-items: center;
             padding: 0 20px;
             background: #fff;
-            border-bottom: 1px solid #dcdcdc;
+            border-bottom: 1px solid #ddd;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            z-index: 999;
+            z-index: 1000;
         }
 
         .topbar button {
             padding: 6px 14px;
-            border-radius: 6px;
             border: none;
+            border-radius: 6px;
             background: #2563eb;
             color: #fff;
-            cursor: pointer;
             font-weight: 600;
-            transition: .2s;
+            cursor: pointer;
         }
 
         .topbar button:hover {
-            background: #1d4ed8;
+            background: #1d4ed8
         }
 
         .app {
             display: flex;
-            margin-top: 52px;
-            min-height: calc(100vh - 52px);
+            margin-top: 52px
         }
 
         .sidebar {
             width: 260px;
             background: #fff;
-            border-right: 1px solid #202f4c3f;
-            padding: 18px;
-            overflow-y: auto;
-            position: sticky;
-            top: 52px;
+            border-right: 1px solid #ddd;
+            padding: 15px;
             height: calc(100vh - 52px);
-        }
-
-        .sidebar h3 {
-            margin-top: 0;
-            font-size: 18px;
-            text-align: center;
+            overflow: auto;
         }
 
         .editor-wrap {
             flex: 1;
             display: flex;
-            justify-content: center;
-            overflow-y: auto;
-            background: #f2f4f7;
+            justify-content: center
         }
 
         .editor {
             width: 900px;
-            min-height: 2000px;
             background: #fff;
             margin: 40px 0;
-            padding: 60px 70px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, .08);
+            padding: 80px 70px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .1);
             border-radius: 12px;
         }
 
@@ -101,77 +86,92 @@
             border: none;
             outline: none;
             margin-bottom: 30px;
-            color: #111827;
         }
 
         #content {
             font-size: 20px;
-            outline: none;
-            min-height: 1500px;
+            min-height: 1400px;
+            outline: none
         }
 
         h1 {
             font-size: 34px;
-            color: #0b3d91;
+            color: #0b3d91
         }
 
         h2 {
             font-size: 30px;
-            color: #1f6f3c;
+            color: #1f6f3c
         }
 
         h3 {
             font-size: 26px;
-            color: #c8412b;
+            color: #c8412b
         }
 
         p,
         li {
             font-size: 20px;
-            line-height: 1.6;
-            color: #000;
+            line-height: 1.6
         }
 
         .toolbar {
             position: absolute;
             display: none;
             background: #1f2937;
-            color: #fff;
-            padding: 6px 8px;
-            border-radius: 10px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
-            z-index: 500;
+            padding: 6px;
+            border-radius: 8px;
+            z-index: 2000;
         }
 
         .toolbar button {
             background: none;
             border: none;
-            color: white;
-            margin: 0 5px;
+            color: #fff;
+            margin: 0 4px;
             cursor: pointer;
-            font-size: 15px;
+        }
+
+        .resizable-wrapper {
+            display: inline-block;
+            position: relative
+        }
+
+        .resizable-wrapper img {
+            max-width: 100%;
+            display: block
+        }
+
+        .resizable-handle {
+            width: 12px;
+            height: 12px;
+            background: #2563eb;
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            cursor: se-resize;
+            border-radius: 50%;
         }
 
         .outline-item {
             cursor: pointer;
-            margin: 6px 0;
-            transition: .3s;
+            margin: 6px 0
         }
 
         .outline-h1 {
-            font-weight: bold;
+            font-weight: bold
         }
 
         .outline-h2 {
-            margin-left: 14px;
+            margin-left: 14px
         }
 
         .outline-h3 {
-            margin-left: 28px;
+            margin-left: 28px
         }
 
         .blink {
-            animation: blink 2s;
+            animation: blink 1.5s
         }
 
         @keyframes blink {
@@ -183,50 +183,11 @@
                 background: transparent
             }
         }
-
-        table {
-            border-collapse: collapse;
-            margin: 14px 0;
-            width: 100%;
-        }
-
-        th,
-        td {
-            border: 1px solid #333;
-            padding: 12px;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-            margin: 14px 0;
-            cursor: pointer;
-        }
-
-        .resizable-wrapper {
-            display: inline-block;
-            position: relative;
-        }
-
-        .resizable-wrapper img {
-            display: block;
-            max-width: 100%;
-        }
-
-        .resizable-handle {
-            width: 12px;
-            height: 12px;
-            background: #2563eb;
-            border-radius: 50%;
-            position: absolute;
-            right: -6px;
-            bottom: -6px;
-            cursor: se-resize;
-        }
     </style>
 </head>
 
 <body>
+
     <div class="topbar">
         <button id="newBtn">New</button>
         <button id="saveBtn">Save</button>
@@ -241,10 +202,6 @@
         <button onclick="setBlock('h3')">H3</button>
         <button onclick="cmd('bold')"><b>B</b></button>
         <button onclick="cmd('italic')"><i>I</i></button>
-        <button onclick="toggleMark('yellow')">Highlight</button>
-        <button onclick="removeMark()">Normal</button>
-        <button onclick="insertList()">• List</button>
-        <button onclick="insertTable()">▦ Table</button>
         <button onclick="insertImage()">🖼</button>
     </div>
 
@@ -253,9 +210,10 @@
             <h3>Outline</h3>
             <div id="outline"></div>
         </div>
+
         <div class="editor-wrap">
             <div class="editor">
-                <input id="title" placeholder="Untitled" />
+                <input id="title" placeholder="Untitled">
                 <div id="content" contenteditable="true">
                     <p><br></p>
                 </div>
@@ -269,192 +227,135 @@
         const outline = document.getElementById('outline');
         const title = document.getElementById('title');
 
-        // Toolbar position
         function showToolbar() {
             const sel = window.getSelection();
             if (!sel.rangeCount || sel.isCollapsed) { toolbar.style.display = 'none'; return; }
-            const rect = sel.getRangeAt(0).getBoundingClientRect();
+            const r = sel.getRangeAt(0).getBoundingClientRect();
             toolbar.style.display = 'block';
-            toolbar.style.top = Math.max(rect.top - 50 + window.scrollY, 10) + 'px';
-            toolbar.style.left = Math.max(rect.left, 10) + 'px';
+            toolbar.style.top = r.top + window.scrollY - 45 + 'px';
+            toolbar.style.left = r.left + 'px';
         }
         document.addEventListener('mouseup', showToolbar);
         document.addEventListener('keyup', showToolbar);
 
-        // Formatting
-        function cmd(command, value = null) { document.execCommand(command, false, value); saveCurrent(); updateOutline(); }
-        function setBlock(tag) { document.execCommand('formatBlock', false, tag); saveCurrent(); updateOutline(); }
-        function toggleMark(color) { const sel = window.getSelection(); if (sel.rangeCount) document.execCommand('backColor', false, color); }
-        function removeMark() { const sel = window.getSelection(); if (sel.rangeCount) document.execCommand('backColor', false, 'transparent'); }
-        function insertList() { document.execCommand('insertUnorderedList'); saveCurrent(); }
+        function cmd(c) { document.execCommand(c); save(); updateOutline() }
+        function setBlock(t) { document.execCommand('formatBlock', false, t); save(); updateOutline() }
 
-        // Table
-        function insertTable() {
-            const r = prompt('Rows?', 3), c = prompt('Columns?', 3);
-            if (!r || !c) return;
-            let html = '<table>';
-            for (let i = 0; i < r; i++) { html += '<tr>'; for (let j = 0; j < c; j++) html += '<td contenteditable="true"></td>'; html += '</tr>'; }
-            html += '</table><p><br></p>';
-            document.execCommand('insertHTML', false, html);
-            saveCurrent();
-        }
-
-        // Insert image
+        /* ---------- IMAGE ---------- */
         function insertImage() {
-            const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = 'image/*';
             input.onchange = e => {
-                const file = e.target.files[0]; const reader = new FileReader();
+                const file = e.target.files[0];
+                const reader = new FileReader();
                 reader.onload = () => {
-                    const wrapper = document.createElement('div'); wrapper.className = 'resizable-wrapper';
-                    const img = document.createElement('img'); img.src = reader.result;
-                    const handle = document.createElement('div'); handle.className = 'resizable-handle';
-                    wrapper.appendChild(img); wrapper.appendChild(handle);
+                    const wrap = document.createElement('div');
+                    wrap.className = 'resizable-wrapper';
+                    const img = document.createElement('img');
+                    img.src = reader.result;
+                    const h = document.createElement('div');
+                    h.className = 'resizable-handle';
+                    wrap.append(img, h);
 
-                    // Resize
-                    handle.addEventListener('mousedown', initResize);
+                    img.ondblclick = () => { if (confirm('Delete image?')) wrap.remove(); save(); }
 
-                    // Delete image
-                    img.addEventListener('contextmenu', e => {
-                        e.preventDefault(); if (confirm('Delete this image?')) wrapper.remove(), saveCurrent();
-                    });
-
-                    const range = window.getSelection().getRangeAt(0);
-                    range.collapse(false);
-                    range.insertNode(wrapper);
-                    range.insertNode(document.createElement('p'));
-                    saveCurrent();
-
-                    function initResize(e) {
+                    h.onmousedown = e => {
                         e.preventDefault();
-                        let startX = e.clientX, startY = e.clientY;
-                        let startWidth = img.offsetWidth, startHeight = img.offsetHeight;
-
-                        function doResize(ev) {
-                            const newWidth = startWidth + (ev.clientX - startX);
-                            const newHeight = startHeight + (ev.clientY - startY);
-                            img.style.width = newWidth + 'px';
-                            img.style.height = newHeight + 'px';
+                        let w = img.offsetWidth;
+                        let sx = e.clientX;
+                        function move(ev) {
+                            img.style.width = Math.max(80, w + ev.clientX - sx) + 'px';
                         }
-                        function stopResize() { window.removeEventListener('mousemove', doResize); window.removeEventListener('mouseup', stopResize); saveCurrent(); }
+                        function up() {
+                            window.removeEventListener('mousemove', move);
+                            window.removeEventListener('mouseup', up);
+                            save();
+                        }
+                        window.addEventListener('mousemove', move);
+                        window.addEventListener('mouseup', up);
+                    };
 
-                        window.addEventListener('mousemove', doResize);
-                        window.addEventListener('mouseup', stopResize);
-                    }
+                    const r = window.getSelection().getRangeAt(0);
+                    r.insertNode(wrap);
+                    r.insertNode(document.createElement('p'));
+                    save();
                 };
                 reader.readAsDataURL(file);
             };
             input.click();
         }
 
-        // Delete tables/lists
-        content.addEventListener('contextmenu', e => {
-            if (e.target.tagName === 'TABLE' || e.target.tagName === 'UL') {
-                e.preventDefault();
-                if (confirm('Delete this element?')) e.target.remove(), saveCurrent();
-            }
-        });
-
-        // Paste images
-        content.addEventListener('paste', e => {
-            for (const item of e.clipboardData.items) {
-                if (item.type.startsWith('image')) {
-                    e.preventDefault();
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const wrapper = document.createElement('div'); wrapper.className = 'resizable-wrapper';
-                        const img = document.createElement('img'); img.src = reader.result;
-                        const handle = document.createElement('div'); handle.className = 'resizable-handle';
-                        wrapper.appendChild(img); wrapper.appendChild(handle);
-                        handle.addEventListener('mousedown', initResize);
-                        img.addEventListener('contextmenu', e => { e.preventDefault(); if (confirm('Delete this image?')) wrapper.remove(), saveCurrent(); });
-
-                        const range = window.getSelection().getRangeAt(0);
-                        range.collapse(false);
-                        range.insertNode(wrapper);
-                        range.insertNode(document.createElement('p'));
-                        saveCurrent();
-
-                        function initResize(e) {
-                            e.preventDefault();
-                            let startX = e.clientX, startY = e.clientY;
-                            let startWidth = img.offsetWidth, startHeight = img.offsetHeight;
-                            function doResize(ev) { img.style.width = (startWidth + (ev.clientX - startX)) + 'px'; img.style.height = (startHeight + (ev.clientY - startY)) + 'px'; }
-                            function stopResize() { window.removeEventListener('mousemove', doResize); window.removeEventListener('mouseup', stopResize); saveCurrent(); }
-                            window.addEventListener('mousemove', doResize);
-                            window.addEventListener('mouseup', stopResize);
-                        }
-                    };
-                    reader.readAsDataURL(item.getAsFile());
-                }
-            }
-        });
-
-        // Outline
+        /* ---------- FIXED OUTLINE (DOM ORDER) ---------- */
         function updateOutline() {
             outline.innerHTML = '';
-            const headers = Array.from(content.querySelectorAll('h1,h2,h3'));
-            headers.sort((a, b) => a.tagName.localeCompare(b.tagName));
+
+            const headers = content.querySelectorAll('h1, h2, h3'); // DOM order
+
             headers.forEach(h => {
-                const div = document.createElement('div');
-                div.textContent = h.innerText || '(empty)';
-                div.className = 'outline-item outline-' + h.tagName.toLowerCase();
-                div.onclick = () => { h.scrollIntoView({ behavior: 'smooth', block: 'center' }); h.classList.add('blink'); setTimeout(() => h.classList.remove('blink'), 2000); };
-                outline.appendChild(div);
+                const d = document.createElement('div');
+                d.textContent = h.innerText || '(empty)';
+
+                if (h.tagName === 'H1') d.className = 'outline-item outline-h1';
+                if (h.tagName === 'H2') d.className = 'outline-item outline-h2';
+                if (h.tagName === 'H3') d.className = 'outline-item outline-h3';
+
+                d.onclick = () => {
+                    h.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    h.classList.add('blink');
+                    setTimeout(() => h.classList.remove('blink'), 1500);
+                };
+                outline.appendChild(d);
             });
         }
 
-        // Storage
-        function saveCurrent() { localStorage.setItem('current-note', JSON.stringify({ title: title.value, content: content.innerHTML })); }
-
-        // Save HTML
-        function saveNote() {
-            const name = prompt('Save as:') || 'note';
-            const blob = new Blob([content.innerHTML], { type: 'text/html' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name + '.html'; a.click();
+        function save() {
+            localStorage.setItem('note', JSON.stringify({ t: title.value, c: content.innerHTML }));
         }
-        function openNoteFile() {
-            const input = document.createElement('input'); input.type = 'file'; input.accept = '.html';
-            input.onchange = e => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(reader.result, 'text/html');
-                    content.innerHTML = doc.body.innerHTML || '<p><br></p>';
-                    title.value = doc.title || 'Untitled';
-                    updateOutline(); saveCurrent();
-                };
-                reader.readAsText(file);
-            };
-            input.click();
+        function load() {
+            const d = JSON.parse(localStorage.getItem('note'));
+            if (d) { title.value = d.t; content.innerHTML = d.c; updateOutline(); }
         }
 
-        function newNote() { title.value = ''; content.innerHTML = '<p><br></p>'; saveCurrent(); updateOutline(); }
-        function load() { const data = JSON.parse(localStorage.getItem('current-note')); if (data) { title.value = data.title; content.innerHTML = data.content; updateOutline(); } }
-
-        // High-quality PDF export
         async function exportPDF() {
             const { jsPDF } = window.jspdf;
-            const editor = document.querySelector('.editor');
-            const scale = 3; // higher scale for quality
-            const canvas = await html2canvas(editor, { scale: scale, useCORS: true });
-            const imgData = canvas.toDataURL('image/png');
+            const clone = document.querySelector('.editor').cloneNode(true);
+            const canvas = await html2canvas(clone, { scale: 3 });
+            const img = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'pt', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
-            pdf.save(`${title.value || 'note'}.pdf`);
+            const w = pdf.internal.pageSize.getWidth() - 40;
+            const h = (canvas.height * w) / canvas.width;
+            pdf.addImage(img, 'PNG', 20, 30, w, h);
+            pdf.save((title.value || 'note') + '.pdf');
         }
 
-        content.addEventListener('input', () => { saveCurrent(); updateOutline(); });
-        title.addEventListener('input', saveCurrent);
-        document.getElementById('newBtn').onclick = newNote;
-        document.getElementById('saveBtn').onclick = saveNote;
-        document.getElementById('openBtn').onclick = openNoteFile;
+        document.getElementById('newBtn').onclick = () => { title.value = ''; content.innerHTML = '<p><br></p>'; save(); updateOutline(); }
+        document.getElementById('saveBtn').onclick = exportHTML;
+        document.getElementById('openBtn').onclick = openHTML;
         document.getElementById('pdfBtn').onclick = exportPDF;
+
+        function exportHTML() {
+            const blob = new Blob([content.innerHTML], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'note.html'; a.click();
+        }
+        function openHTML() {
+            const i = document.createElement('input');
+            i.type = 'file'; i.accept = '.html';
+            i.onchange = e => {
+                const r = new FileReader();
+                r.onload = () => { content.innerHTML = r.result; updateOutline(); save(); }
+                r.readAsText(e.target.files[0]);
+            };
+            i.click();
+        }
+
+        content.oninput = () => { save(); updateOutline() };
+        title.oninput = save;
 
         load();
     </script>
+
 </body>
 
 </html>
