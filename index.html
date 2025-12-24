@@ -52,7 +52,8 @@
 
         .app {
             display: flex;
-            margin-top: 52px
+            margin-top: 52px;
+            height: calc(100vh - 52px)
         }
 
         .sidebar {
@@ -60,14 +61,17 @@
             background: #fff;
             border-right: 1px solid #ddd;
             padding: 15px;
+            position: sticky;
+            top: 52px;
             height: calc(100vh - 52px);
-            overflow: auto;
+            overflow-y: auto;
         }
 
         .editor-wrap {
             flex: 1;
+            overflow-y: auto;
             display: flex;
-            justify-content: center
+            justify-content: center;
         }
 
         .editor {
@@ -91,7 +95,7 @@
         #content {
             font-size: 20px;
             min-height: 1400px;
-            outline: none
+            outline: none;
         }
 
         h1 {
@@ -115,11 +119,23 @@
             line-height: 1.6
         }
 
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0
+        }
+
+        td,
+        th {
+            border: 1px solid #333;
+            padding: 10px
+        }
+
         .toolbar {
             position: absolute;
             display: none;
             background: #1f2937;
-            padding: 6px;
+            padding: 6px 8px;
             border-radius: 8px;
             z-index: 2000;
         }
@@ -202,6 +218,10 @@
         <button onclick="setBlock('h3')">H3</button>
         <button onclick="cmd('bold')"><b>B</b></button>
         <button onclick="cmd('italic')"><i>I</i></button>
+        <button onclick="highlight()">Highlight</button>
+        <button onclick="removeHighlight()">Normal</button>
+        <button onclick="insertList()">• List</button>
+        <button onclick="insertTable()">▦ Table</button>
         <button onclick="insertImage()">🖼</button>
     </div>
 
@@ -227,6 +247,7 @@
         const outline = document.getElementById('outline');
         const title = document.getElementById('title');
 
+        /* Toolbar */
         function showToolbar() {
             const sel = window.getSelection();
             if (!sel.rangeCount || sel.isCollapsed) { toolbar.style.display = 'none'; return; }
@@ -238,67 +259,73 @@
         document.addEventListener('mouseup', showToolbar);
         document.addEventListener('keyup', showToolbar);
 
+        /* Formatting */
         function cmd(c) { document.execCommand(c); save(); updateOutline() }
         function setBlock(t) { document.execCommand('formatBlock', false, t); save(); updateOutline() }
+        function highlight() { document.execCommand('backColor', false, 'yellow') }
+        function removeHighlight() { document.execCommand('backColor', false, 'transparent') }
+        function insertList() { document.execCommand('insertUnorderedList'); save() }
 
-        /* ---------- IMAGE ---------- */
+        /* Table */
+        function insertTable() {
+            const r = prompt('Rows?', 3), c = prompt('Columns?', 3);
+            if (!r || !c) return;
+            let html = '<table>';
+            for (let i = 0; i < r; i++) {
+                html += '<tr>';
+                for (let j = 0; j < c; j++)html += '<td contenteditable="true"></td>';
+                html += '</tr>';
+            }
+            html += '</table><p><br></p>';
+            document.execCommand('insertHTML', false, html);
+            save();
+        }
+
+        /* Image */
         function insertImage() {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = 'image/*';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'resizable-wrapper';
+            const i = document.createElement('input');
+            i.type = 'file'; i.accept = 'image/*';
+            i.onchange = e => {
+                const f = e.target.files[0];
+                const r = new FileReader();
+                r.onload = () => {
+                    const w = document.createElement('div');
+                    w.className = 'resizable-wrapper';
                     const img = document.createElement('img');
-                    img.src = reader.result;
+                    img.src = r.result;
                     const h = document.createElement('div');
                     h.className = 'resizable-handle';
-                    wrap.append(img, h);
+                    w.append(img, h);
 
-                    img.ondblclick = () => { if (confirm('Delete image?')) wrap.remove(); save(); }
+                    img.ondblclick = () => { if (confirm('Delete image?')) w.remove(); save() };
 
                     h.onmousedown = e => {
-                        e.preventDefault();
-                        let w = img.offsetWidth;
-                        let sx = e.clientX;
+                        let startX = e.clientX, startW = img.offsetWidth;
                         function move(ev) {
-                            img.style.width = Math.max(80, w + ev.clientX - sx) + 'px';
+                            img.style.width = Math.max(80, startW + ev.clientX - startX) + 'px';
                         }
-                        function up() {
-                            window.removeEventListener('mousemove', move);
-                            window.removeEventListener('mouseup', up);
-                            save();
-                        }
+                        function up() { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); save(); }
                         window.addEventListener('mousemove', move);
                         window.addEventListener('mouseup', up);
                     };
 
-                    const r = window.getSelection().getRangeAt(0);
-                    r.insertNode(wrap);
-                    r.insertNode(document.createElement('p'));
+                    const range = window.getSelection().getRangeAt(0);
+                    range.insertNode(w);
+                    range.insertNode(document.createElement('p'));
                     save();
                 };
-                reader.readAsDataURL(file);
+                r.readAsDataURL(f);
             };
-            input.click();
+            i.click();
         }
 
-        /* ---------- FIXED OUTLINE (DOM ORDER) ---------- */
+        /* Outline (DOM order, static) */
         function updateOutline() {
             outline.innerHTML = '';
-
-            const headers = content.querySelectorAll('h1, h2, h3'); // DOM order
-
-            headers.forEach(h => {
+            content.querySelectorAll('h1,h2,h3').forEach(h => {
                 const d = document.createElement('div');
                 d.textContent = h.innerText || '(empty)';
-
-                if (h.tagName === 'H1') d.className = 'outline-item outline-h1';
-                if (h.tagName === 'H2') d.className = 'outline-item outline-h2';
-                if (h.tagName === 'H3') d.className = 'outline-item outline-h3';
-
+                d.className = 'outline-item outline-' + h.tagName.toLowerCase();
                 d.onclick = () => {
                     h.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     h.classList.add('blink');
@@ -308,6 +335,7 @@
             });
         }
 
+        /* Storage */
         function save() {
             localStorage.setItem('note', JSON.stringify({ t: title.value, c: content.innerHTML }));
         }
@@ -316,35 +344,36 @@
             if (d) { title.value = d.t; content.innerHTML = d.c; updateOutline(); }
         }
 
+        /* PDF FIX */
         async function exportPDF() {
             const { jsPDF } = window.jspdf;
-            const clone = document.querySelector('.editor').cloneNode(true);
-            const canvas = await html2canvas(clone, { scale: 3 });
+            const editor = document.querySelector('.editor');
+            const canvas = await html2canvas(editor, { scale: 3, useCORS: true });
             const img = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'pt', 'a4');
-            const w = pdf.internal.pageSize.getWidth() - 40;
-            const h = (canvas.height * w) / canvas.width;
-            pdf.addImage(img, 'PNG', 20, 30, w, h);
+            const pw = pdf.internal.pageSize.getWidth() - 40;
+            const ph = (canvas.height * pw) / canvas.width;
+            pdf.addImage(img, 'PNG', 20, 20, pw, ph);
             pdf.save((title.value || 'note') + '.pdf');
         }
 
+        /* Buttons */
         document.getElementById('newBtn').onclick = () => { title.value = ''; content.innerHTML = '<p><br></p>'; save(); updateOutline(); }
-        document.getElementById('saveBtn').onclick = exportHTML;
-        document.getElementById('openBtn').onclick = openHTML;
+        document.getElementById('saveBtn').onclick = () => exportHTML();
+        document.getElementById('openBtn').onclick = () => openHTML();
         document.getElementById('pdfBtn').onclick = exportPDF;
 
         function exportHTML() {
-            const blob = new Blob([content.innerHTML], { type: 'text/html' });
+            const b = new Blob([content.innerHTML], { type: 'text/html' });
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'note.html'; a.click();
+            a.href = URL.createObjectURL(b); a.download = 'note.html'; a.click();
         }
         function openHTML() {
             const i = document.createElement('input');
             i.type = 'file'; i.accept = '.html';
             i.onchange = e => {
                 const r = new FileReader();
-                r.onload = () => { content.innerHTML = r.result; updateOutline(); save(); }
+                r.onload = () => { content.innerHTML = r.result; updateOutline(); save() };
                 r.readAsText(e.target.files[0]);
             };
             i.click();
