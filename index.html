@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Personal Notes</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background: #f2f4f7;
+        }
+
+        /* Top Bar */
+        .topbar {
+            height: 52px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #dcdcdc;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+        }
+
+        .topbar button {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .topbar button:hover {
+            background: #1d4ed8;
+        }
+
+        /* Layout */
+        .app {
+            display: flex;
+            margin-top: 52px;
+            min-height: calc(100vh - 52px);
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #fff;
+            border-right: 1px solid #202f4c3f;
+            padding: 18px;
+            overflow-y: auto;
+            position: sticky;
+            top: 52px;
+            height: calc(100vh - 52px);
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .editor-wrap {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            overflow-y: auto;
+            background: #f2f4f7;
+        }
+
+        .editor {
+            width: 900px;
+            min-height: 2000px;
+            background: #fff;
+            margin: 40px 0;
+            padding: 60px 70px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .08);
+            border-radius: 12px;
+        }
+
+        #title {
+            width: 100%;
+            font-size: 40px;
+            font-weight: bold;
+            border: none;
+            outline: none;
+            margin-bottom: 30px;
+            color: #111827;
+        }
+
+        #content {
+            font-size: 20px;
+            outline: none;
+            min-height: 1500px;
+        }
+
+        h1 {
+            font-size: 34px;
+            color: #0b3d91;
+        }
+
+        h2 {
+            font-size: 30px;
+            color: #1f6f3c;
+        }
+
+        h3 {
+            font-size: 26px;
+            color: #c8412b;
+        }
+
+        p,
+        li {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #000;
+        }
+
+        /* Floating Toolbar */
+        .toolbar {
+            position: absolute;
+            display: none;
+            background: #1f2937;
+            color: #fff;
+            padding: 6px 8px;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+            z-index: 500;
+        }
+
+        .toolbar button {
+            background: none;
+            border: none;
+            color: white;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        /* Outline */
+        .outline-item {
+            cursor: pointer;
+            margin: 6px 0;
+            transition: 0.3s;
+        }
+
+        .outline-h1 {
+            font-weight: bold;
+        }
+
+        .outline-h2 {
+            margin-left: 14px;
+        }
+
+        .outline-h3 {
+            margin-left: 28px;
+        }
+
+        .blink {
+            animation: blink 2s;
+        }
+
+        @keyframes blink {
+            0% {
+                background: yellow
+            }
+
+            100% {
+                background: transparent
+            }
+        }
+
+        /* Table & Image Styles */
+        table {
+            border-collapse: collapse;
+            margin: 14px 0;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 12px;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+            margin: 14px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <button id="newBtn">New</button>
+        <button id="saveBtn">Save</button>
+        <button id="openBtn">Open</button>
+        <button id="pdfBtn">PDF</button>
+    </div>
+
+    <div class="toolbar" id="toolbar">
+        <button onclick="setBlock('p')">Text</button>
+        <button onclick="setBlock('h1')">H1</button>
+        <button onclick="setBlock('h2')">H2</button>
+        <button onclick="setBlock('h3')">H3</button>
+        <button onclick="cmd('bold')"><b>B</b></button>
+        <button onclick="cmd('italic')"><i>I</i></button>
+        <button onclick="toggleMark('yellow')">Highlight</button>
+        <button onclick="removeMark()">Normal</button>
+        <button onclick="insertList()">• List</button>
+        <button onclick="insertTable()">▦ Table</button>
+        <button onclick="insertImage()">🖼</button>
+    </div>
+
+    <div class="app">
+        <div class="sidebar">
+            <h3>Outline</h3>
+            <div id="outline"></div>
+        </div>
+        <div class="editor-wrap">
+            <div class="editor">
+                <input id="title" placeholder="Untitled" />
+                <div id="content" contenteditable="true">
+                    <p><br></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const content = document.getElementById('content');
+        const toolbar = document.getElementById('toolbar');
+        const outline = document.getElementById('outline');
+        const title = document.getElementById('title');
+
+        // Show toolbar on text selection
+        function showToolbar() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) { toolbar.style.display = 'none'; return; }
+            const rect = sel.getRangeAt(0).getBoundingClientRect();
+            toolbar.style.display = 'block';
+            toolbar.style.top = rect.top - 50 + window.scrollY + 'px';
+            toolbar.style.left = rect.left + 'px';
+        }
+        document.addEventListener('mouseup', showToolbar);
+        document.addEventListener('keyup', showToolbar);
+
+        // Formatting
+        function cmd(command, value = null) { document.execCommand(command, false, value); saveCurrent(); updateOutline(); }
+        function setBlock(tag) { document.execCommand('formatBlock', false, tag); saveCurrent(); updateOutline(); }
+        function toggleMark(color) { const sel = window.getSelection(); if (sel.rangeCount) document.execCommand('backColor', false, color); }
+        function removeMark() { const sel = window.getSelection(); if (sel.rangeCount) document.execCommand('backColor', false, 'transparent'); }
+        function insertList() { document.execCommand('insertUnorderedList'); saveCurrent(); }
+
+        // Insert table
+        function insertTable() {
+            const r = prompt('Rows?', 3), c = prompt('Columns?', 3);
+            if (!r || !c) return;
+            let html = '<table>';
+            for (let i = 0; i < r; i++) { html += '<tr>'; for (let j = 0; j < c; j++) html += '<td contenteditable="true"></td>'; html += '</tr>'; }
+            html += '</table><p><br></p>';
+            document.execCommand('insertHTML', false, html);
+            saveCurrent();
+        }
+
+        // Insert image and continue writing
+        function insertImage() {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = 'image/*';
+            input.onchange = e => {
+                const file = e.target.files[0]; const reader = new FileReader();
+                reader.onload = () => {
+                    const img = document.createElement('img'); img.src = reader.result;
+                    img.oncontextmenu = e => {
+                        e.preventDefault();
+                        if (confirm('Delete this image?')) img.remove(), saveCurrent();
+                    };
+                    const p = document.createElement('p'); p.innerHTML = '<br>';
+                    const range = window.getSelection().getRangeAt(0);
+                    range.collapse(false);
+                    range.insertNode(p);
+                    range.insertNode(img);
+                    range.setStartAfter(p);
+                    range.setEndAfter(p);
+                    saveCurrent();
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+
+        // Delete tables and lists on right-click
+        content.addEventListener('contextmenu', e => {
+            if (e.target.tagName === 'TABLE' || e.target.tagName === 'UL') {
+                e.preventDefault();
+                if (confirm('Delete this element?')) e.target.remove(), saveCurrent();
+            }
+        });
+
+        // Paste images without duplication
+        content.addEventListener('paste', e => {
+            for (const item of e.clipboardData.items) {
+                if (item.type.startsWith('image')) {
+                    e.preventDefault(); // Prevent default duplicate
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const img = document.createElement('img');
+                        img.src = reader.result;
+                        img.oncontextmenu = e => {
+                            e.preventDefault();
+                            if (confirm('Delete this image?')) img.remove(), saveCurrent();
+                        };
+                        const p = document.createElement('p'); p.innerHTML = '<br>';
+                        const range = window.getSelection().getRangeAt(0);
+                        range.collapse(false);
+                        range.insertNode(p);
+                        range.insertNode(img);
+                        range.setStartAfter(p);
+                        range.setEndAfter(p);
+                        saveCurrent();
+                    };
+                    reader.readAsDataURL(item.getAsFile());
+                }
+            }
+        });
+
+        // Update outline
+        function updateOutline() {
+            outline.innerHTML = '';
+            content.querySelectorAll('h1,h2,h3').forEach(h => {
+                const div = document.createElement('div');
+                div.textContent = h.innerText || '(empty)';
+                div.className = 'outline-item outline-' + h.tagName.toLowerCase();
+                div.onclick = () => {
+                    h.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    h.classList.add('blink'); setTimeout(() => h.classList.remove('blink'), 2000);
+                };
+                outline.appendChild(div);
+            });
+        }
+
+        // Storage
+        function saveCurrent() { localStorage.setItem('current-note', JSON.stringify({ title: title.value, content: content.innerHTML })); }
+
+        // Save as HTML
+        function saveNote() {
+            const name = prompt('Save as:') || 'note';
+            const blob = new Blob([content.innerHTML], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name + '.html';
+            a.click();
+        }
+
+        // Open HTML
+        function openNoteFile() {
+            const input = document.createElement('input'); input.type = 'file'; input.accept = '.html';
+            input.onchange = e => {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(reader.result, 'text/html');
+                    content.innerHTML = doc.body.innerHTML || '<p><br></p>';
+                    title.value = doc.title || 'Untitled';
+                    updateOutline(); saveCurrent();
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // New and load
+        function newNote() { title.value = ''; content.innerHTML = '<p><br></p>'; saveCurrent(); updateOutline(); }
+        function load() { const data = JSON.parse(localStorage.getItem('current-note')); if (data) { title.value = data.title; content.innerHTML = data.content; updateOutline(); } }
+
+        // PDF Export
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'a4');
+            try {
+                await doc.html(document.querySelector('.editor'), { x: 20, y: 20, width: 560 });
+                doc.save(`${title.value || 'note'}.pdf`);
+            } catch (e) { alert('PDF Error:' + e.message); }
+        }
+
+        // Event listeners
+        content.addEventListener('input', () => { saveCurrent(); updateOutline(); });
+        title.addEventListener('input', saveCurrent);
+        document.getElementById('newBtn').onclick = newNote;
+        document.getElementById('saveBtn').onclick = saveNote;
+        document.getElementById('openBtn').onclick = openNoteFile;
+        document.getElementById('pdfBtn').onclick = exportPDF;
+
+        // load last
+        load();
+    </script>
+</body>
+
+</html>
